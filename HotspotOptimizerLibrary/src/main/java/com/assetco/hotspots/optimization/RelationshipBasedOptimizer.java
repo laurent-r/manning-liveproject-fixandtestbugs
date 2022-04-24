@@ -48,17 +48,16 @@ class RelationshipBasedOptimizer {
 
             // if we don't have a showcase, get one for this partner
             if (showcaseAssets.isEmpty()) {
-                showcaseAssets = getShowcaseAssetsForPartner(showcaseAssetsByPartner, asset.getVendor());
-            }
-            if (showcaseAssets.size() >= 5 && Objects.equals(showcaseAssets.get(0).getVendor(), asset.getVendor())) {
-                searchResults.getHotspot(TopPicks).addMember(asset);
-            } else {
-                if (showcaseAssets.size() > 0 && showcaseAssets.size() < 3 && !Objects.equals(showcaseAssets.get(0).getVendor(), asset.getVendor())) {
-                    // switch to showcase for the new target partner
-                    showcaseAssets = getShowcaseAssetsForPartner(showcaseAssetsByPartner, asset.getVendor());
-                }
-                if (showcaseAssets.isEmpty() || Objects.equals(showcaseAssets.get(0).getVendor(), asset.getVendor()))
+                showcaseAssets = feedShowcaseAssetsForPartner(showcaseAssetsByPartner, asset);
+            } else if (Objects.equals(showcaseAssets.get(0).getVendor(), asset.getVendor())) {
+                if (showcaseAssets.size() >= 5) {
+                    searchResults.getHotspot(TopPicks).addMember(asset);
+                } else {
                     showcaseAssets.add(asset);
+                }
+            } else if (showcaseAssets.size() < 3) {
+                // switch to showcase for the new target partner
+                showcaseAssets = feedShowcaseAssetsForPartner(showcaseAssetsByPartner, asset);
             }
         }
 
@@ -99,8 +98,10 @@ class RelationshipBasedOptimizer {
             searchResults.getHotspot(Fold).addMember(asset);
     }
 
-    private List<Asset> getShowcaseAssetsForPartner(Map<AssetVendor, List<Asset>> map, AssetVendor vendor) {
-        map.putIfAbsent(vendor, new ArrayList<>());
-        return map.get(vendor);
+    private List<Asset> feedShowcaseAssetsForPartner(Map<AssetVendor, List<Asset>> map, Asset asset) {
+        map.putIfAbsent(asset.getVendor(), new ArrayList<>());
+        List<Asset> showcaseAssets = map.get(asset.getVendor());
+        showcaseAssets.add(asset);
+        return showcaseAssets;
     }
 }
