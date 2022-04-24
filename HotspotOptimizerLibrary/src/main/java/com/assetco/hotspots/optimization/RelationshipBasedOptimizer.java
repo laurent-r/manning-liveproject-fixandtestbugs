@@ -46,17 +46,9 @@ class RelationshipBasedOptimizer {
             // remember this partner asset
             partnerAssets.add(asset);
 
-            // if we don't have a showcase, get one for this partner
-            if (showcaseAssets.isEmpty()) {
-                showcaseAssets = feedShowcaseAssetsForPartner(showcaseAssetsByPartner, asset);
-            } else if (Objects.equals(showcaseAssets.get(0).getVendor(), asset.getVendor())) {
-                if (showcaseAssets.size() >= 5) {
-                    searchResults.getHotspot(TopPicks).addMember(asset);
-                } else {
-                    showcaseAssets = feedShowcaseAssetsForPartner(showcaseAssetsByPartner, asset);
-                }
-            } else if (showcaseAssets.size() < 3) {
-                // switch to showcase for the new target partner
+            if (showcaseAssets.size() >= 5 && Objects.equals(showcaseAssets.get(0).getVendor(), asset.getVendor())) {
+                searchResults.getHotspot(TopPicks).addMember(asset);
+            } else if (showcaseAssets.size() < 3 || Objects.equals(showcaseAssets.get(0).getVendor(), asset.getVendor())) {
                 showcaseAssets = feedShowcaseAssetsForPartner(showcaseAssetsByPartner, asset);
             }
         }
