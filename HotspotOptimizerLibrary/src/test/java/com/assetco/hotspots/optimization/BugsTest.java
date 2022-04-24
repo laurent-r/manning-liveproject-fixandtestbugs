@@ -22,19 +22,21 @@ public class BugsTest {
     }
 
     @Test
-    void precedingPartnerWithLongTrailingAssetsDoesNotWin() {
-        AssetVendor partnerVendor = makeVendor(Partner);
-        Asset missing = givenAssetInResultsWithVendor(partnerVendor);
-        Asset disruptingAsset = givenAssetInResultsWithVendor(makeVendor(Partner));
+    void partnerWithLongTrailingAssetsWins() {
+        AssetVendor partner1 = makeVendor(Partner);
+        AssetVendor partner2 = makeVendor(Partner);
         var expected = new ArrayList<Asset>();
-        expected.add(givenAssetInResultsWithVendor(partnerVendor));
-        expected.add(givenAssetInResultsWithVendor(partnerVendor));
-        expected.add(givenAssetInResultsWithVendor(partnerVendor));
-        expected.add(givenAssetInResultsWithVendor(partnerVendor));
+        expected.add(givenAssetInResultsWithVendor(partner1));
+        var unexpected1 = givenAssetInResultsWithVendor(partner2);
+        expected.add(givenAssetInResultsWithVendor(partner1));
+        expected.add(givenAssetInResultsWithVendor(partner1));
+        var unexpected2 = givenAssetInResultsWithVendor(partner2);
+        expected.add(givenAssetInResultsWithVendor(partner1));
+        expected.add(givenAssetInResultsWithVendor(partner1));
 
         whenOptimize();
 
-        thenHotspotDoesNotHave(Showcase, missing);
+        thenHotspotDoesNotHave(Showcase, unexpected1, unexpected2);
         thenHotspotHasExactly(Showcase, expected);
     }
 
