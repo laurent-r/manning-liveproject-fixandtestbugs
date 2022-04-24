@@ -53,7 +53,7 @@ class RelationshipBasedOptimizer {
                 if (showcaseAssets.size() >= 5) {
                     searchResults.getHotspot(TopPicks).addMember(asset);
                 } else {
-                    showcaseAssets.add(asset);
+                    showcaseAssets = feedShowcaseAssetsForPartner(showcaseAssetsByPartner, asset);
                 }
             } else if (showcaseAssets.size() < 3) {
                 // switch to showcase for the new target partner
