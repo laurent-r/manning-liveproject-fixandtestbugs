@@ -9,8 +9,7 @@ import java.util.List;
 
 import static com.assetco.search.results.AssetVendorRelationshipLevel.*;
 import static com.assetco.search.results.HotspotKey.Showcase;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class BugsTest {
     private SearchResults results;
@@ -74,6 +73,6 @@ public class BugsTest {
     }
 
     private void thenHotspotHasExactly(HotspotKey key, List<Asset> assets) {
-        assertEquals(assets, results.getHotspot(key).getMembers());
+        assertArrayEquals(assets.toArray(), results.getHotspot(key).getMembers().toArray());
     }
 }
