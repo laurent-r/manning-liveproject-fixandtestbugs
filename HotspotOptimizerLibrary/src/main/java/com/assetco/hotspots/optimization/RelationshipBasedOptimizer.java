@@ -26,9 +26,9 @@ class RelationshipBasedOptimizer {
         Iterator<Asset> iterator = searchResults.getFound().iterator();
         // don't affect a showcase built by an earlier rule
         var showcaseFull = searchResults.getHotspot(Showcase).getMembers().size() > 0;
-        var showcaseAssets = new ArrayList<Asset>();
+        List<Asset> showcaseAssets = new ArrayList<>();
+        var showcaseAssetsByPartner = new HashMap<AssetVendor, List<Asset>>();
         var partnerAssets = new ArrayList<Asset>();
-        var partitionedPartnerAssets = new HashMap<AssetVendor, List<Asset>>();
         var goldAssets = new ArrayList<Asset>();
         var silverAssets = new ArrayList<Asset>();
 
@@ -44,24 +44,25 @@ class RelationshipBasedOptimizer {
                 continue;
 
             // remember this partner asset
-            addPartnerAsset(asset, partnerAssets, partitionedPartnerAssets);
-            if (showcaseAssets.isEmpty()) {
-                if (partitionedPartnerAssets.get(asset.getVendor()).size() >= 3) {
-                    // first partner TO REACH the 3-asset minimum
-                    showcaseAssets.addAll(partitionedPartnerAssets.get(asset.getVendor()));
-                }
-            } else if (Objects.equals(showcaseAssets.get(0).getVendor(), asset.getVendor())) {
-                if (showcaseAssets.size() >= 5) {
-                    // too many assets in showcase - put in top picks instead...
-                    searchResults.getHotspot(TopPicks).addMember(asset);
-                } else {
-                    showcaseAssets.add(asset);
-                }
-            }
+            partnerAssets.add(asset);
 
+            // if we don't have a showcase, get one for this partner
+            if (showcaseAssets.isEmpty()) {
+                showcaseAssets = getShowcaseAssetsForPartner(showcaseAssetsByPartner, asset.getVendor());
+            }
+            if (showcaseAssets.size() >= 5 && Objects.equals(showcaseAssets.get(0).getVendor(), asset.getVendor())) {
+                searchResults.getHotspot(TopPicks).addMember(asset);
+            } else {
+                if (showcaseAssets.size() > 0 && showcaseAssets.size() < 3 && !Objects.equals(showcaseAssets.get(0).getVendor(), asset.getVendor())) {
+                    // switch to showcase for the new target partner
+                    showcaseAssets = getShowcaseAssetsForPartner(showcaseAssetsByPartner, asset.getVendor());
+                }
+                if (showcaseAssets.isEmpty() || Objects.equals(showcaseAssets.get(0).getVendor(), asset.getVendor()))
+                    showcaseAssets.add(asset);
+            }
         }
 
-        // [DBV], 4/14/2014: 
+        // [DBV], 4/14/2014:
         // need added this here even though it's not about this rules
         // frm Jamie,
         // 1. All partner assets should be eligible for high-value slots in the main grid.
@@ -77,8 +78,8 @@ class RelationshipBasedOptimizer {
         for (var asset : partnerAssets)
             searchResults.getHotspot(Fold).addMember(asset);
 
-        // only copy showcase assets into hotspot if there are enough for a partner to claim the showcase
-        if (!showcaseFull) {
+    // only copy showcase assets into hotspot if there are enough for a partner to claim the showcase
+        if (!showcaseFull && showcaseAssets.size() >= 3) {
             Hotspot showcaseHotspot = searchResults.getHotspot(Showcase);
             for (Asset asset : showcaseAssets)
                 showcaseHotspot.addMember(asset);
@@ -98,9 +99,8 @@ class RelationshipBasedOptimizer {
             searchResults.getHotspot(Fold).addMember(asset);
     }
 
-    private void addPartnerAsset(Asset asset, ArrayList<Asset> assets, Map<AssetVendor, List<Asset>> partitionedAssets) {
-        assets.add(asset);
-        partitionedAssets.putIfAbsent(asset.getVendor(), new ArrayList<>());
-        partitionedAssets.get(asset.getVendor()).add(asset);
+    private List<Asset> getShowcaseAssetsForPartner(Map<AssetVendor, List<Asset>> map, AssetVendor vendor) {
+        map.putIfAbsent(vendor, new ArrayList<>());
+        return map.get(vendor);
     }
 }
